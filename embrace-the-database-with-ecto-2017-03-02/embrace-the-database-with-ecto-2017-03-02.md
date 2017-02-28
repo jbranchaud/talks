@@ -553,11 +553,39 @@ create constraint(:posts, "ensure_positive_likes", check: "likes >= 0")
 
 ```elixir
 iex> Repo.one(from p in "posts", select: count(p.id))
+1066
 ```
 
-- Always start with a `from` clause
-- `Repo.one`, `Repo.all`, etc. to execute
-- `import Ecto.Query` and `alias MyApp.Repo`
+```elixir
+iex> Repo.one(from p in MyApp.Posts, select: count(p.id))
+1066
+```
+
+^ Always start with a `from` clause
+
+^ `Repo.one`, `Repo.all`, etc. to execute
+
+^ `import Ecto.Query` and `alias MyApp.Repo`
+
+---
+
+# So, why schemaless?
+
+^ SQL is great for playing around with data, Elixir too
+
+^ Allows for free-form, unconstrained query building
+
+^ Dynamic queries, build up without creating schema first
+
+^ When pattern emerges, create schema, not before
+
+---
+
+## Query Time
+
+---
+
+# [fit] How many developers are there?
 
 ---
 
@@ -571,6 +599,16 @@ SELECT count(*) FROM "developers" AS d0 []
 
 32
 ```
+
+---
+
+## FROM Clause
+
+> The `FROM` specifies one or more source tables for the `SELECT`.
+
+## SELECT List
+
+> The `SELECT` list specifies expressions that form the output rows of the select statement.
 
 ---
 
@@ -1003,12 +1041,83 @@ iex> from([posts, devs, channels] in posts_devs_channels(),
 
 ---
 
+# [fit] What are the hottest posts?
+
+---
+
+# What are the hottest posts?
+
+How old is a post in hours?
+
+```elixir
+fragment(
+  "extract(epoch from (current_timestamp - ?)) / 3600",
+  p.published_at
+)
+```
+
+^ we want the difference between now and the publish timestamp
+
+^ give it to us in seconds
+
+^ then divide by 3600 to get the # of hours
+
+^ looks like a great candidate for a custom function
+
+---
+
+# What are the hottest posts?
+
+How old is a post in hours?
+
+```elixir
+defmacro hours_since(timestamp) do
+  quote do
+    fragment(
+      "extract(epoch from (current_timestamp - ?)) / 3600",
+      unquote(timestamp)
+    )
+  end
+end
+```
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> posts_with_hours =
+from(p in "posts",
+    where: not is_nil(p.published_at),
+    select: %{
+likes: p.likes,
+hours_age: greatest(hours_since(p.published_at), 0.1)
+})
+```
+
+---
+
 # That's It
 
 ---
 
-# Thanks! Questions?
+### Sources and Links
+
+- Joe Celko's SQL for Smarties: Advanced SQL Programming, 5th Edition
+
+- PostgreSQL 9.6 Documentation
+
+- https://til.hashrocket.com
+
+---
+
+# Thanks!
 
 - Josh Branchaud
 - Software Developer at **Hashrocket**
 - Twitter: @jbrancha
+- Github: @jbranchaud
+
+^ I'd love to chat about postgres and Elixir
+
+^ So, come find me in the halls between talks
