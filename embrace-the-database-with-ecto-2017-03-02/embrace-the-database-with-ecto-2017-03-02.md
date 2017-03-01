@@ -1346,6 +1346,16 @@ iex> from([posts, devs, channels] in posts_devs_channels(),
 
 # [fit] What are the hottest posts?
 
+^ this is a TIL feature
+
+---
+
+# What are the hottest posts?
+
+![inline](images/til_statspage.png)
+
+^ but how would we write the query with Ecto?
+
 ^ Well, how do we measure hotness?
 
 ---
