@@ -356,6 +356,8 @@ SELECT count(p0."id") FROM "posts" AS p0 []
 
 ^ Before we go further, we want a strong foundation
 
+^ without it, writing complex queries will be even harder
+
 ---
 
 ### [fit] Our *data* is only any good
@@ -592,13 +594,21 @@ iex> Repo.one(from p in MyApp.Posts, select: count(p.id))
 # How many developers are there?
 
 ```elixir
-iex> Repo.one(from d in "developers", select: fragment("count(*)"))
+iex> from(d in "developers",
+     select: count(d.id))
+     |> Repo.one()
 
 17:19:01.195 [debug] QUERY OK source="developers" db=1.0ms queue=2.9ms
-SELECT count(*) FROM "developers" AS d0 []
+SELECT count(d0.id) FROM "developers" AS d0 []
 
 32
 ```
+
+^ We get metadata about the execute of the query
+
+^ and the query produced by Ecto
+
+^ So, what do we see in this simple query
 
 ---
 
@@ -606,9 +616,19 @@ SELECT count(*) FROM "developers" AS d0 []
 
 > The `FROM` specifies one or more source tables for the `SELECT`.
 
-## SELECT List
+^ Every query in Ecto starts with a FROM clause
 
-> The `SELECT` list specifies expressions that form the output rows of the select statement.
+^ this declares the source of the data we are interested in
+
+## SELECT Clause
+
+> `SELECT` retrieves rows from zero or more tables
+
+^ In our case, with Ecto, from one or more tables
+
+^ SQL always starts with SELECT
+
+^ Ecto let's us start by thinking about source
 
 ---
 
