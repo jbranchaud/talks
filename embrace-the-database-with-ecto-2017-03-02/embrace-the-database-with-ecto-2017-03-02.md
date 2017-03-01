@@ -924,84 +924,156 @@ building the solution from the ground up
 ### [fit] What is the _channel_ and _title_ of
 ### [fit] each developer's most liked post in 2016?
 
+^ This involves channels, posts, and developers
+
+^ we will need to join all three tables, let's start there
+
 ---
 
 #### What is the channel and title of each developer's most liked post in 2016?
 
-First, let's join our tables together
-
 ```elixir
-iex> posts_devs_channels = from(p in "posts",
-     join: d in "developers", on: d.id == p.developer_id,
-     join: c in "channels", on: c.id == p.channel_id)
-
-#Ecto.Query<from p in "posts", join: d in "developers",
- on: d.id == p.developer_id, join: c in "channels", on: c.id == p.channel_id>
+iex> posts_devs_channels =
+       from(p in "posts",
+       join: d in "developers",
+       on: d.id == p.developer_id,
+       join: c in "channels",
+       on: c.id == p.channel_id)
 ```
 
+^ Now we have a partial query we can build on
+
+^ Let's start by filtering the most liked to the top
+
 ---
 
 #### What is the channel and title of each developer's most liked post in 2016?
 
-Next, we can combine `order_by` and `distinct`
-
 ```elixir
-iex> from([posts, devs, channels] in posts_devs_channels(),
-     distinct: devs.id,
-     order_by: [desc: posts.likes],
-     select: %{
-       dev: devs.username,
-       channel: channels.name,
-       title: posts.title
-     }
-)
-
-#Ecto.Query<from p in "posts", join: d in "developers", on: true,
- join: c in "channels", on: d.id == p.developer_id and c.id == p.channel_id,
- order_by: [desc: p.likes], distinct: [asc: d.id],
- select: %{dev: d.username, channel: c.name, title: p.title}>
+iex> top_of_2016 =
+       from([posts, devs, channels] in posts_devs_channels,
+       order_by: [desc: posts.likes],
+       select: %{
+         dev: devs.username,
+         channel: channels.name,
+         title: posts.title
+       })
 ```
 
+^ This is a good start, but we run into an issue
+
+^ let's look at the result of this query so far
+
 ---
 
 #### What is the channel and title of each developer's most liked post in 2016?
 
-Now, let's constrain the results to 2016
-
 ```elixir
-iex> top_of_2016 = from([posts, devs, channels] in posts_devs_channels(),
-     distinct: devs.id,
-     order_by: [desc: posts.likes],
-     where: posts.created_at > ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
-     where: posts.created_at < ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}}),
-     select: %{
-       dev: devs.username,
-       channel: channels.name,
-       title: posts.title
-     }
-)
+iex> top_of_2016 |> Repo.all()
 
-#Ecto.Query<from p in "posts", join: d in "developers",
- on: d.id == p.developer_id, join: c in "channels", on: c.id == p.channel_id,
- where: p.created_at > ^#Ecto.DateTime<2016-01-01 00:00:00>,
- where: p.created_at < ^#Ecto.DateTime<2017-01-01 00:00:00>,
- order_by: [desc: p.likes], distinct: [asc: d.id],
- select: %{dev: d.username, channel: c.name, title: p.title}>
+[%{channel: "javascript", dev: "developer16", title: "Because JavaScript"},
+ %{channel: "vim", dev: "developer26",
+   title: "Highlight #markdown fenced code syntax in #Vim"},
+ %{channel: "command-line", dev: "developer26",
+   title: "Homebrew is eating up your harddrive"},
+ ...]
 ```
 
+^ look closely, developer26 appears twice in first few results
+
+^ we only want one result per developer
+
+^ we don't need to resort to some complicated subquery or CTE
+
+^ let's make sure our results are distinct by developer
+
+---
+
+#### What is the channel and title of each developer's most liked post in 2016?
+
+## DISTINCT Clause
+
+> If SELECT DISTINCT is specified, all duplicate rows are removed from the
+> result set (one row is kept from each group of duplicates).
+
+^ Great, this will allow DISTINCT ON the developer_id
+
 ---
 
 #### What is the channel and title of each developer's most liked post in 2016?
 
 ```elixir
-iex> Repo.all(top_of_2016)
+iex> top_of_2016 =
+       from([posts, devs, channels] in posts_devs_channels,
+       distinct: devs.id,
+       order_by: [desc: posts.likes],
+       select: %{
+         dev: devs.username,
+         channel: channels.name,
+         title: posts.title
+       })
+```
 
-11:53:32.317 [debug] QUERY OK source="posts" db=13.5ms
-SELECT DISTINCT ON (d1."id") d1."username", c2."name", p0."title" FROM
-"posts" AS p0 INNER JOIN "developers" AS d1 ON d1."id" = p0."developer_id"
-INNER JOIN "channels" AS c2 ON c2."id" = p0."channel_id" WHERE
-(p0."created_at" > $1) AND (p0."created_at" < $2) ORDER BY d1."id",
-p0."likes" DESC [{{2016, 1, 1}, {0, 0, 0, 0}}, {{2017, 1, 1}, {0, 0, 0, 0}}]
+^ for all results, only the first of each developer is kept
+
+^ because we've ordered posts by most liked
+
+^ each record that we keep will be the most liked for each developer
+
+---
+
+#### What is the channel and title of each developer's most liked post in 2016?
+
+```elixir
+posts.created_at > ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
+```
+
+and
+
+```elixir
+posts.created_at < ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}}),
+```
+
+^ almost there, time to constrain to 2016
+
+^ time to finally introduce the where clause
+
+---
+
+#### What is the channel and title of each developer's most liked post in 2016?
+
+## WHERE Clause
+
+> If the WHERE clause is specified, all rows that do not satisfy the condition are eliminated from the output.
+
+---
+
+#### What is the channel and title of each developer's most liked post in 2016?
+
+```elixir
+iex> top_of_2016 =
+       from([posts, devs, channels] in posts_devs_channels(),
+       distinct: devs.id,
+       order_by: [desc: posts.likes],
+       where: posts.created_at > ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
+       where: posts.created_at < ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}}),
+       select: %{
+         dev: devs.username,
+         channel: channels.name,
+         title: posts.title
+       })
+```
+
+^ this will keep the results within the year of 2016
+
+^ let's take a look at the output
+
+---
+
+#### What is the channel and title of each developer's most liked post in 2016?
+
+```elixir
+iex> top_of_2016 |> Repo.all()
 
 [%{channel: "elixir", dev: "developer2",
    title: "Invoke Elixir Functions with Apply"},
@@ -1015,6 +1087,10 @@ p0."likes" DESC [{{2016, 1, 1}, {0, 0, 0, 0}}, {{2017, 1, 1}, {0, 0, 0, 0}}]
  ...]
 ```
 
+^ that's it, we built a fairly complex query from the ground up
+
+^ we iterated on the solution until we had our answer
+
 ---
 
 # Schemaless Query Functions in Ecto 2.0
@@ -1022,6 +1098,8 @@ p0."likes" DESC [{{2016, 1, 1}, {0, 0, 0, 0}}, {{2017, 1, 1}, {0, 0, 0, 0}}]
 - `Ecto.Repo.update_all/3`
 - `Ecto.Repo.insert_all/3`
 - `Ecto.Repo.delete_all/3`
+
+^ other functions worth noting
 
 ---
 
