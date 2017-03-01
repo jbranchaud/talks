@@ -822,18 +822,35 @@ iex> from([p,c] in posts_and_channels,
 
 ---
 
+# [fit] How many posts on average per developer?
+
+^ We just need to posts table
+
+^ because it has a developer_id
+
+---
+
 # How many posts on average per developer?
 
-First, let's get post counts for each developer
-
 ```elixir
-iex> post_counts = from(p in "posts",
-                 group_by: p.developer_id,
-                 select: %{post_count: count(p.id), developer_id: p.developer_id})
-
-#Ecto.Query<from p in "posts", group_by: [p.developer_id],
- select: %{post_count: count(p.id), developer_id: p.developer_id}>
+iex> post_counts =
+       from(p in "posts",
+       group_by: p.developer_id,
+       select: %{
+         post_count: count(p.id),
+         developer_id: p.developer_id
+       })
 ```
+
+^ Most of this should be familiar
+
+^ the posts table is our target
+
+^ group_by developer_id 
+
+^ select the developer_id and the count of posts
+
+^ notice: we use a map this time
 
 ---
 
@@ -842,8 +859,6 @@ iex> post_counts = from(p in "posts",
 ```elixir
 iex> Repo.all(post_counts)
 
-10:29:09.177 [debug] QUERY OK source="posts" db=5.8ms
-SELECT count(p0."id"), p0."developer_id" FROM "posts" AS p0 GROUP BY p0."developer_id" []
 [%{developer_id: 14, post_count: 6}, %{developer_id: 25, post_count: 43},
  %{developer_id: 32, post_count: 1}, %{developer_id: 27, post_count: 2},
  %{developer_id: 8, post_count: 332}, %{developer_id: 17, post_count: 1},
@@ -861,6 +876,14 @@ SELECT count(p0."id"), p0."developer_id" FROM "posts" AS p0 GROUP BY p0."develop
  %{developer_id: 7, post_count: 3}]
 ```
 
+^ We have the posts for every developer
+
+^ Now we need to average them
+
+^ We can treat our query as a subquery
+
+^ subquery is like creating an inline source/table
+
 ---
 
 # How many posts on average per developer?
@@ -868,28 +891,16 @@ SELECT count(p0."id"), p0."developer_id" FROM "posts" AS p0 GROUP BY p0."develop
 ```elixir
 iex> Repo.aggregate(subquery(post_counts), :avg, :post_count)
 
-10:29:45.425 [debug] QUERY OK db=13.0ms queue=0.1ms
-SELECT avg(s0."post_count") FROM (SELECT count(p0."id") AS "post_count",
-p0."developer_id" AS "developer_id" FROM "posts" AS p0 GROUP BY
-p0."developer_id") AS s0 []
-
 #Decimal<36.7586206896551724>
 ```
 
----
+^ about 37 posts on average per developer
 
-# `Ecto.Repo.aggregate`
+^ We can use Repo.aggregate instead of Repo.all to execute
 
-`:avg | :count | :max | :min | :sum`
+^ We use :avg atom to get average
 
-```elixir
-iex> Repo.aggregate("posts", :count, :id)
-
-10:02:11.862 [debug] QUERY OK source="posts" db=21.8ms
-SELECT count(p0."id") FROM "posts" AS p0 []
-
-1066
-```
+^ We are able to reference `:post_count` in our subquery because it is aliased
 
 ---
 
@@ -903,9 +914,15 @@ Let's try something a bit more complex
 
 # Complex Queries
 
-> Writing complex queries is all about building the solution from the ground up.
+Writing complex queries is all about
+building the solution from the ground up
 
-piece by piece.
+## piece by piece
+
+---
+
+### [fit] What is the _channel_ and _title_ of
+### [fit] each developer's most liked post in 2016?
 
 ---
 
