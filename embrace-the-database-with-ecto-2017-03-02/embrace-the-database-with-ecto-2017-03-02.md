@@ -632,31 +632,126 @@ SELECT count(d0.id) FROM "developers" AS d0 []
 
 ---
 
-# How many posts by channel?
-
-First, let's join `channels` on `posts`
-
-```elixir
-iex> posts_and_channels = from(p in "posts",
-    join: c in "channels",
-    on: p.channel_id == c.id)
-
-#Ecto.Query<from p in "posts", join: c in "channels", on: p.channel_id == c.id>
-```
+# [fit] How many posts by channel?
 
 ---
 
 # How many posts by channel?
 
-Use `group_by` with `count(p.id)` as our aggregator
+## JOIN Clause
+
+> A `JOIN` clause combines two `FROM` items
+
+^ This question is about posts and channels
+
+^ Let's join posts and channels
+
+---
+
+# How many posts by channel?
 
 ```elixir
-iex> Repo.all(from([p,c] in posts_and_channels,
-    group_by: c.name,
-    select: {count(p.id), c.name}))
+iex> posts_and_channels =
+       from(p in "posts",
+       join: c in "channels",
+       on: p.channel_id == c.id)
+```
 
-16:12:31.539 [debug] QUERY OK source="posts" db=6.8ms
-SELECT count(p0."id"), c1."name" FROM "posts" AS p0 INNER JOIN "channels" AS c1 ON p0."channel_id" = c1."id" GROUP BY c1."name" []
+^ We can execute this partial query
+
+^ but we can build on it
+
+^ we bind it to posts_and_channels
+
+---
+
+# How many posts by channel?
+
+##  GROUP BY Clause
+
+> With `group by`, output is combined in groups of rows that match the grouping value
+
+^ We want to group things in buckets based on channel
+
+---
+
+# How many posts by channel?
+
+```elixir
+iex> from([p,c] in posts_and_channels,
+     group_by: c.name,
+     select: c.name)
+```
+
+^ An important thing here
+
+^ Our from uses a list because there are multiple sources
+
+^ We group by name and select the name, results?
+
+---
+
+# How many posts by channel?
+
+```elixir
+iex> from([p,c] in posts_and_channels,
+     group_by: c.name,
+     select: c.name) |> Repo.all()
+
+["clojure", "react", "rails", "vim", "workflow", "command-line", "sql",
+ "elixir", "erlang", "design", "testing", "go", "mobile", "javascript",
+ "devops", "ruby", "html-css", "git", "emberjs"]
+```
+
+^ This gives us our channel buckets
+
+^ but we want a count of the posts in each bucket as well
+
+---
+
+# How many posts by channel?
+
+## Aggregates
+
+> Aggregate functions are computed across all rows making up each group, producing a separate value for each group.
+
+^ GROUP BY is often paired with aggregates
+
+^ this tells us something about the things in the bucket
+
+^ in our case, we want to know the count of posts in each bucket
+
+---
+
+# How many posts by channel?
+
+```elixir
+iex> from([p,c] in posts_and_channels,
+     group_by: c.name,
+     select: {
+       count(p.id),
+       c.name
+     }))
+```
+
+^ Anything not in the group by needs an aggregator
+
+^ we use count to get the count of posts
+
+^ Notice the struct
+
+---
+
+# How many posts by channel?
+
+```elixir
+iex> from([p,c] in posts_and_channels,
+     group_by: c.name,
+     select: {
+       count(p.id),
+       c.name
+     }))
+     |> Repo.all()
 
 [{13, "clojure"}, {5, "react"}, {102, "rails"}, {201, "vim"}, {59, "workflow"},
  {110, "command-line"}, {121, "sql"}, {73, "elixir"}, {1, "erlang"},
@@ -664,20 +759,55 @@ SELECT count(p0."id"), c1."name" FROM "posts" AS p0 INNER JOIN "channels" AS c1 
  {32, "devops"}, {125, "ruby"}, {17, "html-css"}, {63, "git"}, {23, "emberjs"}]
 ```
 
+^ great, we have the counts of each post
+
+^ but these results are messy
+
+^ let's order them
+
 ---
 
 # How many posts by channel?
 
-Clean up the result with an `order_by` clause
+## ORDER BY Clause
+
+> If the ORDER BY clause is specified, the returned rows are sorted in the specified order.
+
+^ order by a row or by a computed value
+
+^ order ascending or descending
+
+^ Interesting note: there is no default ordering
+
+^ the DB does whatever is fastest
+
+---
+
+# How many posts by channel?
 
 ```elixir
-> Repo.all(from([p,c] in posts_and_channels,
-    group_by: c.name,
-    order_by: [desc: count(p.id)],
-    select: {count(p.id), c.name}))
+iex> from([p,c] in posts_and_channels,
+     group_by: c.name,
+     order_by: [desc: count(p.id)],
+     select: {
+       count(p.id),
+       c.name
+     }))
+```
 
-16:13:43.516 [debug] QUERY OK source="posts" db=7.3ms
-SELECT count(p0."id"), c1."name" FROM "posts" AS p0 INNER JOIN "channels" AS c1 ON p0."channel_id" = c1."id" GROUP BY c1."name" ORDER BY count(p0."id") DESC []
+---
+
+# How many posts by channel?
+
+```elixir
+iex> from([p,c] in posts_and_channels,
+     group_by: c.name,
+     order_by: [desc: count(p.id)],
+     select: {
+       count(p.id),
+       c.name
+     }))
+     |> Repo.all()
 
 [{201, "vim"}, {125, "ruby"}, {121, "sql"}, {110, "command-line"},
  {102, "rails"}, {73, "elixir"}, {67, "javascript"}, {63, "git"},
@@ -685,6 +815,10 @@ SELECT count(p0."id"), c1."name" FROM "posts" AS p0 INNER JOIN "channels" AS c1 
  {17, "html-css"}, {15, "mobile"}, {13, "clojure"}, {6, "design"}, {5, "go"},
  {5, "react"}, {1, "erlang"}]
 ```
+
+^ Lots of Vim, Ruby, and SQL
+
+^ there are 73 elixir posts
 
 ---
 
