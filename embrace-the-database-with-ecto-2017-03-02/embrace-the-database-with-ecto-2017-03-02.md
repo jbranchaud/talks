@@ -7,7 +7,7 @@ slidenumbers: true
 
 ---
 
-# About me
+# Who am I?
 
 - Josh Branchaud
 - Software Developer at **Hashrocket**
@@ -136,11 +136,7 @@ TIL is an open-source project by the team at
 [**Hashrocket**](https://hashrocket.com/) that catalogues the sharing &
 accumulation of knowledge as it happens day-to-day. 
 
-(Check it out - [til.hashrocket.com](til.hashrocket.com))
-
 ---
-
-<!-- TODO: include a right-half image of a UML-type diagram -->
 
 # TIL's DB Schema
 
@@ -149,8 +145,6 @@ accumulation of knowledge as it happens day-to-day.
 - Channels
 
 ---
-
-<!-- TODO: how do these code blocks of DDL description look? -->
 
 # Posts Table
 
@@ -214,14 +208,7 @@ How do we ask questions of our data?
 
 # We need a mediator
 
-<!-- NOTE: good analogy here is that your database is a library and the
-mediator between you and the library is a librarian. You can ask them
-questions and they will help find things and figure it out. The duey decimal
-system is analogous to databases indices. -->
-
 What is the best mediator between us and our data?
-
-<!-- NOTE: I'm here to tell you about the best DSL for interacting with a SQL database! -->
 
 ---
 
@@ -249,28 +236,26 @@ sql> select count(id) from posts;
 
 ---
 
-<!-- NOTES: this is an Elixir meetup, so we should probably talk about
-Elixir and Ecto -->
-
 # Ecto
 
 > Ecto is a domain specific language for writing queries and interacting with databases in Elixir.
-
-<!-- NOTES: also, Ecto is a really badass DSL for interacting with databases -->
-<!-- NOTES: there is a lot we can accomplish from the comfort of the data-centric,
-  functional accommodations that Elixir provides us. -->
 
 ---
 
 ### How many posts are there?
 
 ```elixir
-iex> Repo.one(from p in "posts", select: count(p.id))
+iex> from(p in "posts",
+     select: count(p.id))
+     |> Repo.one()
+
 1066
 
 17:16:36.573 [debug] QUERY OK source="posts" db=10.8ms queue=0.2ms
 SELECT count(p0."id") FROM "posts" AS p0 []
 ```
+
+^ this is what it looks like with Ecto
 
 ---
 
@@ -285,6 +270,16 @@ SELECT count(p0."id") FROM "posts" AS p0 []
 - #Ecto.Query Struct
 - You build them up as you go
 - You can inspect them
+
+---
+
+# [fit] Data Integrity
+
+### Schemaless Queries
+
+### Ecto's Escape Hatch
+
+### Enhancing Ecto with Custom Functions
 
 ---
 
@@ -317,9 +312,10 @@ SELECT count(p0."id") FROM "posts" AS p0 []
 ## **database**
 
 ^ Our main app inserts and updates data
+
 ^ We write microservices to insert and update data
+
 ^ Our mobile apps insert and update data
-^ People with production DB access
 
 ---
 
@@ -335,7 +331,7 @@ Services → `validations` → DB
 
 ^ Validation logic spread across 3 places
 
-^ Does this make anyone uneasy? DRY it up!
+^ this is a concern, I want it in ONE place
 
 ---
 
@@ -359,25 +355,6 @@ books you can get
 
 ^ It does this with a variety of constraint mechanisms
 
-<!--
-You should be relying primarily on the database to validate your data.
-Any application-level validations are for the application to do its job
-(e.g. provide good validation errors, prevent unnecessary trips to DB,
-etc.). You may have multiple application clients (phoenix, iphone, android)
-that interface with your DB. DRY up the most essential layer of data
-validation by putting it in your database.
--->
-
----
-
-# [fit] Data Integrity
-
-### Schemaless Queries
-
-### Ecto's Escape Hatch
-
-### Enhancing Ecto with Custom Functions
-
 ---
 
 # Data Integrity - Data Types
@@ -390,12 +367,11 @@ create table(:developers) do
   add :admin, :boolean
   add :created_at, :timestamp
 end
-
-
-
-
-
 ```
+
+^ basic types allow us to constraint data
+
+^ also, our DB implementation has custom types
 
 ---
 
@@ -412,9 +388,9 @@ create table(:developers, primary_key: false) do
   add :admin, :boolean
   add :created_at, :timestamp
 end
-
-
 ```
+
+^ next, enforce presence
 
 ---
 
@@ -430,6 +406,10 @@ create table(:developers, primary_key: false) do
   add :created_at, :timestamp
 end
 ```
+
+^ what does it mean for something to be null?
+
+^ it's ambiguous
 
 ---
 
@@ -454,11 +434,13 @@ create table(:posts) do
 
   add :developer_id, references(:developers, type: :uuid)
 end
- 
- 
- 
- 
 ```
+
+^ ensure we never break a relationship
+
+^ never orphan any records
+
+^ assured that the records we point to are there
 
 ---
 
@@ -476,8 +458,13 @@ create table(:posts) do
 end
 
 create constraint(:posts, "ensure_positive_likes", check: "likes >= 0")
-
 ```
+
+^ single column and multi-column
+
+^ enforce relationships between multiple things
+
+^ with a solid foundation for a data, let's do some querying
 
 ---
 
@@ -503,7 +490,7 @@ iex> Repo.one(from p in MyApp.Posts, select: count(p.id))
 1066
 ```
 
-^ Always start with a `from` clause
+^ top is schemaless, bottom is with a schema
 
 ^ `Repo.one`, `Repo.all`, etc. to execute
 
@@ -517,7 +504,7 @@ iex> Repo.one(from p in MyApp.Posts, select: count(p.id))
 
 ^ Allows for free-form, unconstrained query building
 
-^ Dynamic queries, build up without creating schema first
+^ build up without creating schema first
 
 ^ When pattern emerges, create schema, not before
 
@@ -601,7 +588,7 @@ iex> posts_and_channels =
 
 ^ but we can build on it
 
-^ we bind it to posts_and_channels
+^ we bind it to `posts_and_channels`
 
 ---
 
@@ -636,7 +623,8 @@ iex> from([p,c] in posts_and_channels,
 ```elixir
 iex> from([p,c] in posts_and_channels,
      group_by: c.name,
-     select: c.name) |> Repo.all()
+     select: c.name)
+     |> Repo.all()
 
 ["clojure", "react", "rails", "vim", "workflow", "command-line", "sql",
  "elixir", "erlang", "design", "testing", "go", "mobile", "javascript",
@@ -671,7 +659,7 @@ iex> from([p,c] in posts_and_channels,
      select: {
        count(p.id),
        c.name
-     }))
+     })
 ```
 
 ^ Anything not in the group by needs an aggregator
@@ -690,7 +678,7 @@ iex> from([p,c] in posts_and_channels,
      select: {
        count(p.id),
        c.name
-     }))
+     })
      |> Repo.all()
 
 [{13, "clojure"}, {5, "react"}, {102, "rails"}, {201, "vim"}, {59, "workflow"},
@@ -732,7 +720,7 @@ iex> from([p,c] in posts_and_channels,
      select: {
        count(p.id),
        c.name
-     }))
+     })
 ```
 
 ---
@@ -746,7 +734,7 @@ iex> from([p,c] in posts_and_channels,
      select: {
        count(p.id),
        c.name
-     }))
+     })
      |> Repo.all()
 
 [{201, "vim"}, {125, "ruby"}, {121, "sql"}, {110, "command-line"},
@@ -766,7 +754,7 @@ iex> from([p,c] in posts_and_channels,
 
 ^ We just need to posts table
 
-^ because it has a developer_id
+^ because it has a `developer_id`
 
 ---
 
@@ -786,9 +774,9 @@ iex> post_counts =
 
 ^ the posts table is our target
 
-^ group_by developer_id 
+^ `group_by` `developer_id` 
 
-^ select the developer_id and the count of posts
+^ select the `developer_id` and the count of posts
 
 ^ notice: we use a map this time
 
@@ -919,7 +907,7 @@ iex> top_of_2016 |> Repo.all()
  ...]
 ```
 
-^ look closely, developer26 appears twice in first few results
+^ look closely, `developer26` appears twice in first few results
 
 ^ we only want one result per developer
 
@@ -936,7 +924,7 @@ iex> top_of_2016 |> Repo.all()
 > If SELECT DISTINCT is specified, all duplicate rows are removed from the
 > result set (one row is kept from each group of duplicates).
 
-^ Great, this will allow DISTINCT ON the developer_id
+^ Great, this will allow DISTINCT ON the `developer_id`
 
 ---
 
@@ -1141,7 +1129,7 @@ iex> top_of_2016 =
 
 ^ can we improve the where clause with a fragment?
 
-^ I think we can better convey intent with Postgres's BETWEEN predicate
+^ I think we can better convey intent with Postgres's `BETWEEN` predicate
 
 ---
 
@@ -1155,7 +1143,7 @@ iex> top_of_2016 =
 a between x and y
 ```
 
-^ we want to say the created_at is between the beginning and end of 2016
+^ we want to say the `created_at` is between the beginning and end of 2016
 
 ^ let's write that fragment
 
@@ -1269,7 +1257,7 @@ defmodule CustomFunctions do
 end
 ```
 
-^ CustomFunctions module provides reusable Ecto fragments
+^ `CustomFunctions` module provides reusable Ecto fragments
 
 ^ We create a macro
 
@@ -1356,7 +1344,7 @@ hotness_score = (likes / (age_in_hours ^ 0.8))
 
 ^ So, where do we start? Let's break this down and build it up piece by piece
 
-^ Starting with age_in_hours
+^ Starting with `age_in_hours`
 
 ---
 
@@ -1421,8 +1409,6 @@ age_in_hours = extract(epoch from
 
 # What are the hottest posts?
 
-How old is a post in hours?
-
 ```elixir
 defmacro hours_since(timestamp) do
   quote do
@@ -1436,7 +1422,7 @@ end
 
 ^ we give this a name and can use it in our query
 
-^ we can now try out hours_since
+^ we can now try out `hours_since`
 
 ---
 
@@ -1453,7 +1439,7 @@ iex> posts_with_age_in_hours =
 
 ^ this query contains familiar stuff
 
-^ we can utilize hours_since 
+^ we can utilize `hours_since` 
 
 ^ and if we run this partial query
 
@@ -1567,9 +1553,9 @@ iex> hot_posts =
        })
 ```
 
-^ we have access to id, likes, and hours_age
+^ we have access to id, likes, and `hours_age`
 
-^ use a fragment to compute the hotness_score
+^ use a fragment to compute the `hotness_score`
 
 ^ not quite there, we need to order them by score
 
@@ -1590,7 +1576,7 @@ iex> hot_posts =
        })
 ```
 
-^ we utilize the ordinal form of order_by
+^ we utilize the ordinal form of `order_by`
 
 ^ references the second item in the select list
 
@@ -1682,11 +1668,11 @@ iex> hot_posts_with_titles |> Repo.all()
 
 ### Sources and Links
 
+- https://til.hashrocket.com
+
 - Joe Celko's SQL for Smarties: Advanced SQL Programming, 5th Edition
 
 - PostgreSQL 9.6 Documentation
-
-- https://til.hashrocket.com
 
 ---
 
