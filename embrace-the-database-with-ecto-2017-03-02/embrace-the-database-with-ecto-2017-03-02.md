@@ -1298,39 +1298,50 @@ From _clunky_ fragments to _elegant_ custom functions
 
 # Custom Functions
 
-We can do better than this and DRY up our code
-
 ```elixir
-where: fragment("? between ? and ?",
-               posts.created_at,
-               ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
-               ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}})
-             ),
+fragment("? between ? and ?",
+  posts.created_at,
+  ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
+  ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}})
+)
 ```
+
+^ this is a common postgres feature
+
+^ I bet we will reuse it
+
+^ let's wrap it up as a custom function
 
 ---
 
 # Custom Functions
 
-Define a `CustomFunctions` module with reusable fragments
-
 ```elixir
 defmodule CustomFunctions do
-  defmacro between(operand, left, right) do
+  defmacro between(value, left_bound, right_bound) do
     quote do
-      fragment("? between ? and ?", unquote(operand), unquote(left), unquote(right))
+      fragment("? between ? and ?",
+               unquote(value),
+               unquote(left_bound),
+               unquote(right_bound))
     end
   end
 end
 ```
 
+^ CustomFunctions module provides reusable Ecto fragments
+
+^ We create a macro
+
+^ Check out Jason's talk for nitty-gritty details of macros
+
 ---
 
 # Custom Functions
 
-To use it, first `import CustomFunctions`, then
-
 ```elixir
+iex> import CustomFunctions
+
 iex> from([posts, devs, channels] in posts_devs_channels(),
      distinct: devs.id,
      order_by: [desc: posts.likes],
@@ -1342,15 +1353,22 @@ iex> from([posts, devs, channels] in posts_devs_channels(),
        dev: devs.username,
        channel: channels.name,
        title: posts.title
-     }
-)
-
-#Ecto.Query<from p in "posts", join: d in "developers",
- on: d.id == p.developer_id, join: c in "channels", on: c.id == p.channel_id,
- where: fragment("? between ? and ?", p.created_at, ^#Ecto.DateTime<2016-01-01 00:00:00>, ^#Ecto.DateTime<2017-01-01 00:00:00>),
- order_by: [desc: p.likes], distinct: [asc: d.id],
- select: %{dev: d.username, channel: c.name, title: p.title}>
+     })
 ```
+
+^ Here is our updated query
+
+^ Even cleaner
+
+^ Now we can easily use between wherever
+
+---
+
+# [fit] One more question to ask
+
+^ Let's put everything together
+
+^ and answer a final tricky question
 
 ---
 
