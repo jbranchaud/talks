@@ -156,11 +156,11 @@ accumulation of knowledge as it happens day-to-day.
 
 ```sql
 id           | integer
-developer_id | integer
-body         | text
-channel_id   | integer
 title        | character varying
+body         | text
 likes        | integer
+developer_id | integer
+channel_id   | integer
 
 Foreign-key constraints:
     "fk_rails_447dc2e0a3" FOREIGN KEY (channel_id) REFERENCES channels(id)
