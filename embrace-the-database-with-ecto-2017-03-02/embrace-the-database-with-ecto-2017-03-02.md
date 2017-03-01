@@ -79,37 +79,11 @@ hashrocket.com
 
 ### What is _the single most important asset_ in the life of your product/business?
 
----
+^ Idea? No
 
-### Opinion 3:
+^ Source code? No
 
-### The Idea
-
-^ NO, the idea evolves over time
-
-^ Other people have the same idea
-
----
-
-### Opinion 3:
-
-### ~~The Idea~~
-
-### The Source Code
-
-^ NO, php > rails > elixir
-
----
-
-### Opinion 3:
-
-### ~~The Idea~~
-
-### ~~The Source Code~~
-
-### The Data
-
-^ Is it data, YES!
+^ Data? Yes
 
 ---
 
