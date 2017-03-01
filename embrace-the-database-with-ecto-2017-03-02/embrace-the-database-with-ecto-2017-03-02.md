@@ -153,28 +153,13 @@ accumulation of knowledge as it happens day-to-day.
 # Posts Table
 
 ```sql
-> \d posts
-                                      Table "public.posts"
-    Column    |            Type             |                     Modifiers
---------------+-----------------------------+----------------------------------------------------
- id           | integer                     | not null default nextval('posts_id_seq'::regclass)
- developer_id | integer                     | not null
- body         | text                        | not null
- created_at   | timestamp without time zone | not null
- updated_at   | timestamp without time zone | not null
- channel_id   | integer                     | not null
- title        | character varying           | not null
- slug         | character varying           | not null
- likes        | integer                     | not null default 1
- tweeted      | boolean                     | not null default false
- published_at | timestamp with time zone    |
- max_likes    | integer                     | not null default 1
-Indexes:
-    "posts_pkey" PRIMARY KEY, btree (id)
-    "index_posts_on_channel_id" btree (channel_id)
-    "index_posts_on_developer_id" btree (developer_id)
-Check constraints:
-    "likes" CHECK (likes >= 0)
+id           | integer
+developer_id | integer
+body         | text
+channel_id   | integer
+title        | character varying
+likes        | integer
+
 Foreign-key constraints:
     "fk_rails_447dc2e0a3" FOREIGN KEY (channel_id) REFERENCES channels(id)
     "fk_rails_b3ec63b3ac" FOREIGN KEY (developer_id) REFERENCES developers(id)
@@ -185,23 +170,13 @@ Foreign-key constraints:
 # Developers Table
 
 ```sql
-> \d developers
-                                       Table "public.developers"
-     Column     |            Type             |                        Modifiers
-----------------+-----------------------------+---------------------------------------------------------
- id             | integer                     | not null default nextval('developers_id_seq'::regclass)
- email          | character varying           | not null
- username       | character varying           | not null
- created_at     | timestamp without time zone | not null
- updated_at     | timestamp without time zone | not null
- twitter_handle | character varying           |
- admin          | boolean                     | not null default false
- editor         | character varying           | default 'Text Field'::character varying
- slack_name     | character varying           |
-Indexes:
-    "developers_pkey" PRIMARY KEY, btree (id)
+ id             | integer
+ email          | character varying
+ username       | character varying
+
 Referenced by:
-    TABLE "posts" CONSTRAINT "fk_rails_b3ec63b3ac" FOREIGN KEY (developer_id) REFERENCES developers(id)
+    TABLE "posts" CONSTRAINT "fk_rails_b3ec63b3ac"
+      FOREIGN KEY (developer_id) REFERENCES developers(id)
 ```
 
 ---
@@ -209,21 +184,12 @@ Referenced by:
 # Channels Table
 
 ```sql
-> \d channels
-                                        Table "public.channels"
-     Column      |            Type             |                       Modifiers
------------------+-----------------------------+-------------------------------------------------------
- id              | integer                     | not null default nextval('channels_id_seq'::regclass)
- name            | text                        | not null
- created_at      | timestamp without time zone | not null
- updated_at      | timestamp without time zone | not null
- twitter_hashtag | character varying(20)       | not null
-Indexes:
-    "channels_pkey" PRIMARY KEY, btree (id)
-Check constraints:
-    "twitter_hashtag_alphanumeric_constraint" CHECK (twitter_hashtag::text ~ '^[\w\d]+$'::text)
+ id              | integer
+ name            | text
+
 Referenced by:
-    TABLE "posts" CONSTRAINT "fk_rails_447dc2e0a3" FOREIGN KEY (channel_id) REFERENCES channels(id)
+    TABLE "posts" CONSTRAINT "fk_rails_447dc2e0a3"
+      FOREIGN KEY (channel_id) REFERENCES channels(id)
 ```
 
 ---
