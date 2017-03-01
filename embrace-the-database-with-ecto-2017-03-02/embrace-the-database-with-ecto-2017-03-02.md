@@ -1115,9 +1115,7 @@ iex> top_of_2016 |> Repo.all()
 
 # Escape Hatch
 
-Ecto can't do it all, sometimes we need an
-
-_Escape Hatch_
+Ecto can't do it all, sometimes we need an **Escape Hatch**
 
 ---
 
@@ -1135,11 +1133,130 @@ select * from generate_series(1,5); []
   connection_id: 59379, num_rows: 5, rows: [[1], [2], [3], [4], [5]]}}
 ```
 
+^ for starters, we may just want to execute raw SQL
+
+^ more interesting though, the `fragments` function
+
 ---
 
 # Fragments
 
 The `Ecto.Query.API.fragment` function
+
+^ Allows us to inject SQL into Ecto queries
+
+---
+
+# Fragments in Queries
+
+```elixir
+iex> from(d in "developers",
+     select: fragment("count(*)"))
+     |> Repo.one()
+
+17:19:01.195 [debug] QUERY OK source="developers" db=1.0ms queue=2.9ms
+SELECT count(*) FROM "developers" AS d0 []
+
+32
+```
+
+^ We can even give arguments to fragment
+
+---
+
+# Fragments in Queries
+
+```elixir
+iex> from(d in "developers",
+     select: fragment("count(?)"), d.id)
+     |> Repo.one()
+
+17:19:01.195 [debug] QUERY OK source="developers" db=1.0ms queue=2.9ms
+SELECT count(d0.id) FROM "developers" AS d0 []
+
+32
+```
+
+^ let's put this new found tool to good use
+
+^ let's revisit our query from before
+
+---
+
+# Fragments in Queries
+
+```elixir
+iex> top_of_2016 =
+       from([posts, devs, channels] in posts_devs_channels(),
+       distinct: devs.id,
+       order_by: [desc: posts.likes],
+       where: posts.created_at > ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
+       where: posts.created_at < ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}}),
+       select: %{
+         dev: devs.username,
+         channel: channels.name,
+         title: posts.title
+       })
+```
+
+^ can we improve the where clause with a fragment?
+
+^ I think we can better convey intent with Postgres's BETWEEN predicate
+
+---
+
+# Fragments in Queries
+
+## BETWEEN predicate
+
+> The BETWEEN predicate simplifies range tests
+
+```
+a between x and y
+```
+
+^ we want to say the created_at is between the beginning and end of 2016
+
+^ let's write that fragment
+
+---
+
+# Fragments in Queries
+
+```elixir
+fragment("? between ? and ?",
+  posts.created_at,
+  ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
+  ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}})
+)
+```
+
+^ this better conveys the intent of our where clause
+
+---
+
+# Fragments in Queries
+
+```elixir
+iex> top_of_2016 =
+       from([posts, devs, channels] in posts_devs_channels(),
+       distinct: devs.id,
+       order_by: [desc: posts.likes],
+       where: fragment("? between ? and ?",
+                       posts.created_at,
+                       ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
+                       ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}})
+                     ),
+       select: %{
+         dev: devs.username,
+         channel: channels.name,
+         title: posts.title
+       })
+```
+
+^ it's an improvement
+
+^ makes good use of the fragment function
 
 ---
 
@@ -1154,70 +1271,17 @@ create table(:developers, primary_key: false) do
 end
 ```
 
----
-
-# Fragments in Queries
-
-```elixir
-iex> Repo.one(from d in "developers", select: fragment("count(*)"))
-
-17:19:01.195 [debug] QUERY OK source="developers" db=1.0ms queue=2.9ms
-SELECT count(*) FROM "developers" AS d0 []
-32
-```
-
----
-
-# Fragments in Queries
-
-Let's revisit this query. Can we use the `between` construct?
-
-```elixir
-iex> top_of_2016 = from([posts, devs, channels] in posts_devs_channels(),
-     distinct: devs.id,
-     order_by: [desc: posts.likes],
-     where: posts.created_at > ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
-     where: posts.created_at < ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}}),
-     select: %{
-       dev: devs.username,
-       channel: channels.name,
-       title: posts.title
-     }
-)
-```
-
----
-
-# Fragments in Queries
-
-```elixir
-iex> from([posts, devs, channels] in posts_devs_channels(),
-     distinct: devs.id,
-     order_by: [desc: posts.likes],
-     where: fragment("? between ? and ?",
-                     posts.created_at,
-                     ^Ecto.DateTime.cast!({{2016,1,1},{0,0,0}}),
-                     ^Ecto.DateTime.cast!({{2017,1,1},{0,0,0}})
-                   ),
-     select: %{
-       dev: devs.username,
-       channel: channels.name,
-       title: posts.title
-     }
-)
-
-#Ecto.Query<from p in "posts", join: d in "developers",
- on: d.id == p.developer_id, join: c in "channels", on: c.id == p.channel_id,
- where: fragment("? between ? and ?", p.created_at, ^#Ecto.DateTime<2016-01-01 00:00:00>, ^#Ecto.DateTime<2017-01-01 00:00:00>),
- order_by: [desc: p.likes], distinct: [asc: d.id],
- select: %{dev: d.username, channel: c.name, title: p.title}>
-```
+^ also can be used in migrations for default values
 
 ---
 
 # One Step Further
 
 From _clunky_ fragments to _elegant_ custom functions
+
+^ condensing our where clause into the fragment was great
+
+^ but we can do better
 
 ---
 
