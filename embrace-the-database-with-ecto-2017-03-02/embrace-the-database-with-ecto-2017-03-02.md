@@ -38,6 +38,8 @@ hashrocket.com
 
 # *Friend*
 
+^ It's my friend - assurances and makes me feel powerful
+
 ^ Now, you might say to me "but it is scary!"
 
 ---
@@ -71,7 +73,7 @@ hashrocket.com
 
 ^ lots of stuff we do inefficiently in our app logic can be better handled in the DB
 
-^ e.g. data organization and reporting
+^ e.g. organizing results and crunching data for reporting
 
 ---
 
@@ -1698,3 +1700,5 @@ iex> hot_posts_with_titles |> Repo.all()
 ^ I'd love to chat about postgres and Elixir
 
 ^ So, come find me in the halls between talks
+
+^ My coworkers are here, chat with them as well
