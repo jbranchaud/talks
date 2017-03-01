@@ -11,8 +11,6 @@ slidenumbers: true
 
 - Josh Branchaud
 - Software Developer at **Hashrocket**
-- Twitter: @jbrancha
-- Github: @jbranchaud
 
 ---
 
@@ -26,7 +24,7 @@ hashrocket.com
 
 ^ Bringing expertise from Ruby world to Land of Elixir
 
-^ Host VimChi and ChicagoElixir
+^ Host Chicago's Elixir Meetup
 
 ---
 
