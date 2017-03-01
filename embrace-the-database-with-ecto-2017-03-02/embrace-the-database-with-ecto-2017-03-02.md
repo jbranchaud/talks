@@ -1374,26 +1374,98 @@ iex> from([posts, devs, channels] in posts_devs_channels(),
 
 # [fit] What are the hottest posts?
 
+^ Well, how do we measure hotness?
+
+---
+
+# Measuring Hotness
+
+with a HackerNews-esque Ranking Algorithm[^1]
+<br/>
+
+```
+hotness_score = (likes / (age_in_hours ^ gravity))
+```
+
+[^1]: https://medium.com/hacking-and-gonzo/how-hacker-news-ranking-algorithm-works-1d9b0cf2c08d#.3sdij412h
+
+^ play around with values, but 0.8 gravity is good for this app
+
+---
+
+# Measuring Hotness
+
+with a HackerNews-esque Ranking Algorithm[^1]
+<br/>
+
+```
+hotness_score = (likes / (age_in_hours ^ 0.8))
+```
+
+[^1]: https://medium.com/hacking-and-gonzo/how-hacker-news-ranking-algorithm-works-1d9b0cf2c08d#.3sdij412h
+
+^ So, where do we start? Let's break this down and build it up piece by piece
+
+^ Starting with age_in_hours
+
 ---
 
 # What are the hottest posts?
 
-How old is a post in hours?
-
-```elixir
-fragment(
-  "extract(epoch from (current_timestamp - ?)) / 3600",
-  p.published_at
-)
+```
+age_in_hours = age_in_seconds / 3600
 ```
 
-^ we want the difference between now and the publish timestamp
+^ get hours if we can figure out seconds
 
-^ give it to us in seconds
+---
 
-^ then divide by 3600 to get the # of hours
+# What are the hottest posts?
 
-^ looks like a great candidate for a custom function
+```
+age_in_hours = age_in_seconds / 3600
+```
+
+```
+age_in_seconds = (current_timestamp - published_at)
+```
+
+^ not quite, in postgres, this results in an interval of time
+
+---
+
+# What are the hottest posts?
+
+```
+age_in_hours = age_in_seconds / 3600
+```
+
+```
+age_in_seconds = extract(epoch from
+                   (current_timestamp - published_at))
+```
+
+^ extract with epoch keywords allows us to extract the
+
+^ interval in terms of seconds
+
+^ let's put it all together
+
+---
+
+# What are the hottest posts?
+
+```
+age_in_hours = extract(epoch from
+                 (current_timestamp - published_at)
+               ) / 3600
+```
+
+^ that gives us the age in hours
+
+^ your fragment and custom function senses should be tingling
+
+^ let's extract this
 
 ---
 
@@ -1412,18 +1484,244 @@ defmacro hours_since(timestamp) do
 end
 ```
 
+^ we give this a name and can use it in our query
+
+^ we can now try out hours_since
+
 ---
 
 # What are the hottest posts?
 
 ```elixir
-iex> posts_with_hours =
-from(p in "posts",
-    where: not is_nil(p.published_at),
-    select: %{
-likes: p.likes,
-hours_age: greatest(hours_since(p.published_at), 0.1)
-})
+iex> posts_with_age_in_hours =
+       from(p in "posts",
+       select: %{
+         id: p.id,
+         hours_age: hours_since(p.published_at)
+       })
+```
+
+^ this query contains familiar stuff
+
+^ we can utilize hours_since 
+
+^ and if we run this partial query
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> posts_with_age_in_hours |> Repo.all()
+
+[%{hours_age: 16176.589612136388, id: 12},
+ %{hours_age: 8308.070006305556, id: 657},
+ %{hours_age: 7713.880550556667, id: 708},
+ %{hours_age: 6054.369684539444, id: 833},
+ %{hours_age: 6768.798842247777, id: 772},
+ %{hours_age: 8315.479890300556, id: 654},
+ %{hours_age: 5698.932204395278, id: 870},
+ ...]
+```
+
+^ this looks good, we have the age of each post
+
+^ this doesn't make sense for unpublished posts, add a where
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> posts_with_age_in_hours =
+       from(p in "posts",
+       where: not is_nil(p.published_at),
+       select: %{
+         id: p.id,
+         hours_age: hours_since(p.published_at)
+       })
+```
+
+^ Also, we don't want to deal with divide by 0 errors
+
+^ If hours age is 0, let's use 0.1
+
+---
+
+# What are the hottest posts?
+
+```elixir
+defmacro greatest(value1, value2) do
+  quote do
+    fragment("greatest(?, ?)", unquote(value1), unquote(value2))
+  end
+end
+```
+
+^ Utilize postgres's `greatest` function
+
+^ Let's add this to our query
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> posts_with_age_in_hours =
+       from(p in "posts",
+       where: not is_nil(p.published_at),
+       select: %{
+         id: p.id,
+         hours_age: greatest(hours_since(p.published_at), 0.1)
+       })
+```
+
+^ with that out of the way, what's next?
+
+^ we are going to need the number of likes for each post
+
+^ let's add that in to the select
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> posts_with_age_in_hours =
+       from(p in "posts",
+       where: not is_nil(p.published_at),
+       select: %{
+         id: p.id,
+         likes: p.likes,
+         hours_age: greatest(hours_since(p.published_at), 0.1)
+       })
+```
+
+^ this is a good stopping point for this query
+
+^ let's build out the next part of it, computing the hotness score
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> hot_posts =
+       from(p in subquery(posts_with_age_in_hours),
+       select: %{
+         id: p.id,
+         hotness_score: fragment("? / (? ^ ?)",
+                                 p.likes,
+                                 p.hours_age,
+                                 0.8)
+       })
+```
+
+^ we have access to id, likes, and hours_age
+
+^ use a fragment to compute the hotness_score
+
+^ not quite there, we need to order them by score
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> hot_posts =
+       from(p in subquery(posts_with_age_in_hours),
+       order_by: [desc: 2],
+       select: %{
+         id: p.id,
+         hotness_score: fragment("? / (? ^ ?)",
+                                 p.likes,
+                                 p.hours_age,
+                                 0.8)
+       })
+```
+
+^ we utilize the ordinal form of order_by
+
+^ references the second item in the select list
+
+^ let's limit the results to just the top 5
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> hot_posts =
+       from(p in subquery(posts_with_age_in_hours),
+       order_by: [desc: 2],
+       select: %{
+         id: p.id,
+         hotness_score: fragment("? / (? ^ ?)",
+                                 p.likes,
+                                 p.hours_age,
+                                 0.8)
+       },
+       limit: 5)
+```
+
+^ our query is ready to go, let's execute it
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> hot_posts |> Repo.all()
+
+[%{hotness_score: 0.07338486607688295, id: 1134},
+ %{hotness_score: 0.0641696195616784, id: 1128},
+ %{hotness_score: 0.06255221703215852, id: 1131},
+ %{hotness_score: 0.05892805984356843, id: 1127},
+ %{hotness_score: 0.056850664015716326, id: 1125}]
+```
+
+^ awesome it worked
+
+^ in order to not leave you all in total suspense
+
+^ let's fill out the query a bit more to see what the posts actually are
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> hot_posts_with_titles =
+       from(p in subquery(posts_with_age_in_hours),
+       join: posts in "posts", on: posts.id == p.id,
+       order_by: [desc: 2],
+       select: %{
+         title: posts.title,
+         hotness_score: fragment("? / (? ^ ?)",
+                                 p.likes,
+                                 p.hours_age,
+                                 0.8)
+       },
+       limit: 5)
+```
+
+^ join in the posts table with the post ids
+
+^ swap the id out for the title
+
+---
+
+# What are the hottest posts?
+
+```elixir
+iex> hot_posts_with_titles |> Repo.all()
+
+[%{hotness_score: 0.07335796393712307, title: "Custom loaders for webpack"},
+ %{hotness_score: 0.06415573399947418, title: "Rerun Only Failures With RSpec"},
+ %{hotness_score: 0.06253343464917116,
+   title: "Rails on ruby 2.4: Silence Fixnum/Bignum warnings"},
+ %{hotness_score: 0.05891816565837998, title: "Polymorphic Path Helpers"},
+ %{hotness_score: 0.056841537315585514, title: "Clean untracked files in Git"}]
 ```
 
 ---
