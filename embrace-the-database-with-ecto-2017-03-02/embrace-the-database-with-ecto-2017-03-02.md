@@ -81,9 +81,9 @@ hashrocket.com
 
 ### What is _the single most important asset_ in the life of your product/business?
 
-^ Idea? No
+^ Product idea? No
 
-^ Source code? No
+^ Code base? No
 
 ^ Data? Yes
 
@@ -105,7 +105,7 @@ hashrocket.com
 
 # `PostgreSQL`
 
-^ Open-source, fast feature cycle
+^ Open-source, fast development/release cycle
 
 ^ ACID-Compliant
 
@@ -122,8 +122,6 @@ hashrocket.com
 
 ---
 
-<!-- NOTES: but first, we need some data to work with -->
-
 # Our Sample Data Source
 
 ![inline](images/til_homepage.png)
@@ -138,7 +136,7 @@ accumulation of knowledge as it happens day-to-day.
 
 ---
 
-# TIL's DB Schema
+# TIL's Database Schema
 
 - Posts
 - Developers
@@ -666,7 +664,9 @@ iex> from([p,c] in posts_and_channels,
 
 ^ we use count to get the count of posts
 
-^ Notice the struct
+^ Notice the tuple in select
+
+^ wrap results in any data structure
 
 ---
 
@@ -808,9 +808,9 @@ iex> Repo.all(post_counts)
 
 ^ Now we need to average them
 
-^ We can treat our query as a subquery
+^ all results in SQL are tables
 
-^ subquery is like creating an inline source/table
+^ result of a query can be source of another query -- subquery
 
 ---
 
@@ -1662,15 +1662,19 @@ iex> hot_posts_with_titles |> Repo.all()
 
 ---
 
-# That's It
+# That's it
+
+---
+
+# [fit] Now the **database** is your _friend_
 
 ---
 
 ### Sources and Links
 
-- https://til.hashrocket.com
+- til.hashrocket.com
 
-- Joe Celko's SQL for Smarties: Advanced SQL Programming, 5th Edition
+- Joe Celko's SQL for Smarties: Advanced SQL Programming, 5th Ed
 
 - PostgreSQL 9.6 Documentation
 
