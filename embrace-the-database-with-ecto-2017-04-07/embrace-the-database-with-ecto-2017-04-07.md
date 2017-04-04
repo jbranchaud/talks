@@ -1,6 +1,45 @@
 footer: Embrace the Database with Ecto (4/7/2017) - Josh Branchaud - @jbrancha - Hashrocket
 slidenumbers: true
 
+
+---
+
+# Databases
+
+^ under-appreciated part of our stack
+
+^ coming from rails, we forget about the database
+
+^ not dumb data store
+
+^ powerful computation engine
+
+^ data is IMPORTANT
+
+^ a poor data model and under-constrained data are particularly insidious tech debt
+
+^ goal should not be to forget the DB is there, but to better understand and utilize it
+
+---
+
+### [fit] The **Database** Is Your
+
+# *Friend*
+
+^ It's my friend - assurances and makes me feel powerful
+
+---
+
+# `PostgreSQL`
+
+^ Open-source, fast development/release cycle
+
+^ ACID-Compliant
+
+^ Performant and scalable (100 millions rows on single node)`
+
+---
+
 # _Embrace_ The _Database_
 
 ## with **Ecto**
@@ -26,97 +65,13 @@ slidenumbers: true
 
 ---
 
-###  I have some opinions about databases.
-
----
-
-### Opinion 1:
-
-### [fit] The **Database** Is Your
-
-# *Friend*
-
-^ It's my friend - assurances and makes me feel powerful
-
-^ Now, you might say to me "but it is scary!"
-
----
-
-### ... but databases are scary!
-
-- Composite Indexes
-- Full Outer Joins
-- Common Table Expressions
-- Explain Analyze Output
-
-^ it's not a scary black box, or at least it doesn't have to be
-
-^ we have these features for a reason, because ...
-
----
-
-### Opinion 2:
-
-### [fit] your database is not just a
-
-### [fit] _dumb data store_
-
----
-
-### Opinion 2:
-
-### [fit] it is a _powerful_
-
-### [fit] **computation engine**
-
-^ lots of stuff we do inefficiently in our app logic can be better handled in the DB
-
-^ e.g. organizing results and crunching data for reporting
-
----
-
-### Opinion 3:
-
-### What is _the single most important asset_ in the life of your product/business?
-
-^ Product idea? No
-
-^ Code base? No
-
-^ Data? Yes
-
----
-
-### Opinion 3:
-
-### The **data** stored in your _database_ is the single most important _asset_ in the life of your product/business.
-
-^ We need to protect our data
-
-^ make sure it is correct
-
----
-
-### Opinion 4:
-
-### [fit] The best database for web applications is
-
-# `PostgreSQL`
-
-^ Open-source, fast development/release cycle
-
-^ ACID-Compliant
-
-^ Performant and scalable (100 millions rows on single node)
-
----
-
 # Agenda
 
 - Data Integrity
 - Schemaless Queries
 - Ecto's Escape Hatch
 - Enhancing Ecto with Custom Functions
+- Bonus: Tricky Query
 
 ---
 
