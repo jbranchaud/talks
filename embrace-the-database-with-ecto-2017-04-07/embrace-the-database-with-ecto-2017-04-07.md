@@ -16,8 +16,6 @@ slidenumbers: true
 
 ![inline](images/hashrocket_logo.png)
 
-hashrocket.com
-
 ^ I've been at Hashrocket over two years
 
 ^ We are Rails and PostgreSQL experts
