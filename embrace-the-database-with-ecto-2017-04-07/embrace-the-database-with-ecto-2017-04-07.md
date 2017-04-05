@@ -1615,6 +1615,14 @@ iex> hot_posts_with_titles |> Repo.all()
 
 ---
 
+# Beyond Ecto
+
+moebius - https://github.com/robconery/moebius
+
+defql - https://github.com/fazibear/defql
+
+---
+
 # That's it
 
 ---
