@@ -1633,6 +1633,8 @@ iex> hot_posts_with_titles |> Repo.all()
 
 ---
 
+![right](images/stickers.jpg)
+
 # Thanks!
 
 - Josh Branchaud
