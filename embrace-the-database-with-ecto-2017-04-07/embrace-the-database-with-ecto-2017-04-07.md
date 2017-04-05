@@ -852,15 +852,15 @@ iex> top_of_2016 =
 ```elixir
 iex> top_of_2016 |> Repo.all()
 
-[%{channel: "javascript", dev: "developer16", title: "Because JavaScript"},
- %{channel: "vim", dev: "developer26",
+[%{channel: "javascript", dev: "Frank Rossitano", title: "Because JavaScript"},
+ %{channel: "vim", dev: "Kenneth Parcell",
    title: "Highlight #markdown fenced code syntax in #Vim"},
- %{channel: "command-line", dev: "developer26",
+ %{channel: "command-line", dev: "Kenneth Parcell",
    title: "Homebrew is eating up your harddrive"},
  ...]
 ```
 
-^ look closely, `developer26` appears twice in first few results
+^ look closely, `Kenneth Parcell` appears twice in first few results
 
 ^ we only want one result per developer
 
@@ -956,14 +956,14 @@ iex> top_of_2016 =
 ```elixir
 iex> top_of_2016 |> Repo.all()
 
-[%{channel: "elixir", dev: "developer2",
+[%{channel: "elixir", dev: "Liz Lemon",
    title: "Invoke Elixir Functions with Apply"},
- %{channel: "workflow", dev: "developer4", title: "Ternary shortcut in PHP"},
- %{channel: "vim", dev: "developer5",
+ %{channel: "workflow", dev: "Jack Donaghy", title: "Ternary shortcut in PHP"},
+ %{channel: "vim", dev: "Tracy Jordan",
    title: "Use colorcolumn to visualize maximum line length"},
- %{channel: "ruby", dev: "developer6",
+ %{channel: "ruby", dev: "Pete Hornberger",
    title: "Ruby optional arguments can come before required"},
- %{channel: "ruby", dev: "developer7",
+ %{channel: "ruby", dev: "Jenna Maroney",
    title: "Using pessimistic gem version to catch betas"},
  ...]
 ```
