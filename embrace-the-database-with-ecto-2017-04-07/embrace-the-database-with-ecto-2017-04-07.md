@@ -1049,7 +1049,7 @@ SELECT count(*) FROM "developers" AS d0 []
 
 ```elixir
 iex> from(d in "developers",
-     select: fragment("count(?)"), d.id)
+     select: fragment("count(?)", d.id)
      |> Repo.one()
 
 17:19:01.195 [debug] QUERY OK source="developers" db=1.0ms queue=2.9ms
