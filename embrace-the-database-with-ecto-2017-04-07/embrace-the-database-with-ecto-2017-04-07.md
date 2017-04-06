@@ -6,19 +6,32 @@ slidenumbers: true
 
 # Databases
 
-^ under-appreciated part of our stack
+^ under-appreciated part of our dev stack
 
 ^ coming from rails, we forget about the database
 
-^ not dumb data store
+^ or afraid to use it
 
-^ powerful computation engine
-
-^ data is IMPORTANT
+^ Miss out on
+- model schema well
+- constrain data
+- powerful feature (SQL and PG)
 
 ^ a poor data model and under-constrained data are particularly insidious tech debt
 
+^ What can the DB do for us?
+- DB can take care of our data
+- DB provides expressive DSL for queries - SQL
+- DB can do complex things in performant way
+
 ^ goal should not be to forget the DB is there, but to better understand and utilize it
+
+^ Key takeaways
+- not dumb data store
+- powerful computation engine
+- data is IMPORTANT
+
+^ Lastly...
 
 ---
 
