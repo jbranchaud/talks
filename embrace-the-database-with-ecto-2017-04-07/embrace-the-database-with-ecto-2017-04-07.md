@@ -1171,7 +1171,7 @@ end
 
 # One Step Further
 
-From _clunky_ fragments to _elegant_ custom functions
+Reusable fragments with custom functions
 
 ^ condensing our where clause into the fragment was great
 
@@ -1458,9 +1458,25 @@ defmacro greatest(value1, value2) do
 end
 ```
 
-^ Utilize postgres's `greatest` function
+^ we could write something like this... OR
 
-^ Let's add this to our query
+---
+
+# What are the hottest posts?
+
+`ecto_pg_extras`
+
+```elixir
+# mix.exs
+defp deps do
+  [...,  {:ecto_pg_extras, "~> 0.1.1"}]
+end
+```
+
+```elixir
+# hot_posts.ex
+import EctoPgExtras
+```
 
 ---
 
@@ -1626,14 +1642,6 @@ iex> hot_posts_with_titles |> Repo.all()
 
 ---
 
-# Beyond Ecto
-
-moebius - https://github.com/robconery/moebius
-
-defql - https://github.com/fazibear/defql
-
----
-
 # That's it
 
 ---
@@ -1642,9 +1650,23 @@ defql - https://github.com/fazibear/defql
 
 ---
 
+# Beyond Ecto
+
+moebius - https://github.com/robconery/moebius
+
+defql - https://github.com/fazibear/defql
+
+^ moebius - more robust access to postgres feature, tool for power users
+
+^ defql - macros for SQL as body of functions
+
+---
+
 ### Sources and Links
 
-- til.hashrocket.com
+- `github.com/hashrocket/ecto_pg_extras`
+
+- `til.hashrocket.com`
 
 - Joe Celko's SQL for Smarties: Advanced SQL Programming, 5th Ed
 
