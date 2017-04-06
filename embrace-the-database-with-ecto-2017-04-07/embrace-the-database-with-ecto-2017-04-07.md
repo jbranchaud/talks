@@ -1227,8 +1227,6 @@ end
 
 ^ We create a macro
 
-^ Check out Jason's talk for nitty-gritty details of macros
-
 ---
 
 # Custom Functions
@@ -1666,5 +1664,3 @@ defql - https://github.com/fazibear/defql
 ^ I'd love to chat about postgres and Elixir
 
 ^ So, come find me in the halls between talks
-
-^ My coworkers are here, chat with them as well
