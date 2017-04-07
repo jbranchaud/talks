@@ -1678,6 +1678,8 @@ defql - https://github.com/fazibear/defql
 
 ### Sources and Links
 
+- `github.com/jbranchaud/talks`
+
 - `github.com/hashrocket/ecto_pg_extras`
 
 - `til.hashrocket.com`
