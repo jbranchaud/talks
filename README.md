@@ -5,7 +5,7 @@
 - Embrace the Database with Ecto
 - [slides](embrace-the-database-with-ecto-2017-04-07/embrace-the-database-with-ecto-2017-04-07.pdf)
 
-### ElixirDaze (3/2/2017)
+### [ElixirDaze](http://www.elixirdaze.com/) (3/2/2017)
 
 - Embrace the Database with Ecto
 - [slides](embrace-the-database-with-ecto-2017-03-02/embrace-the-database-with-ecto-2017-03-02.pdf)
