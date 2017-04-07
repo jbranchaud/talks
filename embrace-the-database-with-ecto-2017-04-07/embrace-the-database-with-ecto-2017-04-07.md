@@ -1363,6 +1363,18 @@ age_in_hours = extract(epoch from
                ) / 3600
 ```
 
+---
+
+# What are the hottest posts?
+
+```
+age_in_hours = extract(epoch from
+                 (current_timestamp - published_at)
+               ) / 3600
+
+age_in_hours = greatest(age_in_hours, 0.1)
+```
+
 ^ that gives us the age in hours
 
 ^ your fragment and custom function senses should be tingling
@@ -1443,6 +1455,8 @@ iex> posts_with_age_in_hours =
 ```
 
 ^ Also, we don't want to deal with divide by 0 errors
+
+^ how can we put lower bound on the value of `hours_age`?
 
 ^ If hours age is 0, let's use 0.1
 
