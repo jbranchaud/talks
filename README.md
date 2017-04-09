@@ -16,3 +16,8 @@
 - Embrace the Database with Ecto
 - [slides](embrace-the-database-with-ecto-2017-02-15/embrace-the-database-with-ecto-2017-02-15.pdf)
 - [video](https://www.youtube.com/watch?v=vYP0BKxFPrs)
+
+### [VimChi](https://www.meetup.com/Vim-Chicago/events/234760791/) (11/15/2017)
+
+- Vim Buffers
+- [notes](vim-chi-buffers/buffers.md)
