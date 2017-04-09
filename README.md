@@ -9,6 +9,7 @@
 
 - Embrace the Database with Ecto
 - [slides](embrace-the-database-with-ecto-2017-03-02/embrace-the-database-with-ecto-2017-03-02.pdf)
+- [video](https://www.youtube.com/watch?v=fFqsMWmONN4)
 
 ### [ChicagoElixir](https://www.meetup.com/ChicagoElixir/events/237255274/) (2/15/2017)
 
