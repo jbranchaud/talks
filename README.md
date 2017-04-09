@@ -1,23 +1,23 @@
 # talks
 
-### [Erlang and Elixir Factory Lite - Rome](http://www.erlang-factory.com/rome2017) (4/7/2017)
+### Embrace the Database with Ecto (4/7/2017)
 
-- Embrace the Database with Ecto
+- [Erlang and Elixir Factory Lite - Rome](http://www.erlang-factory.com/rome2017)
 - [slides](embrace-the-database-with-ecto-2017-04-07/embrace-the-database-with-ecto-2017-04-07.pdf)
 
-### [ElixirDaze](http://www.elixirdaze.com/) (3/2/2017)
+### Embrace the Database with Ecto (3/2/2017)
 
-- Embrace the Database with Ecto
+- [ElixirDaze](http://www.elixirdaze.com/)
 - [slides](embrace-the-database-with-ecto-2017-03-02/embrace-the-database-with-ecto-2017-03-02.pdf)
 - [video](https://www.youtube.com/watch?v=fFqsMWmONN4)
 
-### [ChicagoElixir](https://www.meetup.com/ChicagoElixir/events/237255274/) (2/15/2017)
+### Embrace the Database with Ecto (2/15/2017)
 
-- Embrace the Database with Ecto
+- [ChicagoElixir](https://www.meetup.com/ChicagoElixir/events/237255274/)
 - [slides](embrace-the-database-with-ecto-2017-02-15/embrace-the-database-with-ecto-2017-02-15.pdf)
 - [video](https://www.youtube.com/watch?v=vYP0BKxFPrs)
 
-### [VimChi](https://www.meetup.com/Vim-Chicago/events/234760791/) (11/15/2016)
+### Vim Buffers (11/15/2016)
 
-- Vim Buffers
+- [VimChi](https://www.meetup.com/Vim-Chicago/events/234760791/)
 - [notes](vim-chi-buffers/buffers.md)
